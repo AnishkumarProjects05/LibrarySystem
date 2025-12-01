@@ -1,0 +1,165 @@
+/* ===== General Container ===== */
+.dashboard-container {
+  max-width: 1400px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #f8fafc;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ===== Header ===== */
+.dashboard-container h1 {
+  color: #1e293b;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logout-btn {
+  background-color: #ef4444;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
+  transform: scale(1.1);
+}
+
+/* ===== Horizontal Books Grid ===== */
+.books-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+}
+
+/* ===== Book Card ===== */
+.book-card {
+  flex: 1 1 calc(25% - 30px);
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.book-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== Book Cover ===== */
+.book-cover {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-bottom: 1px solid #e5e7eb;
+  transition: transform 0.3s ease;
+}
+
+.book-card:hover .book-cover {
+  transform: scale(1.03);
+}
+
+/* ===== Book Details ===== */
+.book-details {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.book-details h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.book-details h3 {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.book-details p {
+  font-size: 0.9rem;
+  color: #475569;
+  margin-bottom: 10px;
+}
+
+/* ===== Quantity and Buy Button ===== */
+.book-details input[type="number"] {
+  width: 60px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  margin-right: 10px;
+}
+
+.buy-btn {
+  background-color: #2563eb;
+  border: none;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s ease;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+}
+
+.buy-btn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+/* ===== Out of Stock Badge ===== */
+.book-card[data-status="Out of Stock"]::after {
+  content: "Out of Stock";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #ef4444;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ===== Responsive Layout ===== */
+@media (max-width: 1200px) {
+  .book-card {
+    flex: 1 1 calc(33.33% - 30px);
+  }
+}
+
+@media (max-width: 900px) {
+  .book-card {
+    flex: 1 1 calc(50% - 30px);
+  }
+}
+
+@media (max-width: 600px) {
+  .book-card {
+    flex: 1 1 100%;
+  }
+  .book-cover {
+    height: 220px;
+  }
+}
