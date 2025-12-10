@@ -12,13 +12,20 @@ const razorpay = new Razorpay({
 exports.createOrder = async (req, res) => {
   try {
     const { books } = req.body;
+    console.log('1.Received Book',books);
     let totalAmount = 0;
 
     for (const item of books) {
+      console.log('2.Processing Book',item.book);
       const book = await Book.findById(item.book);
-      if (!book) return res.status(404).json({ message: 'Book not found' });
+      if (!book){
+        console.error('Book not found for ID:', item.book);
+        return res.status(404).json({ message: 'Book not found' });
+      } 
+      console.log('3. Book price:', book.price, 'Quantity:', item.quantity);
       totalAmount += book.price * item.quantity;
     }
+    console.log('4. Total Amount (INR paise):', totalAmount * 100);
 
     const options = {
       amount: totalAmount * 100, // paise
@@ -27,34 +34,36 @@ exports.createOrder = async (req, res) => {
     };
 
     const order = await razorpay.orders.create(options);
-
+    console.log('5. Order created successfully:', order.id);
     res.json({ orderId: order.id, currency: order.currency, amount: order.amount });
   } catch (error) {
+    console.error('!!! CRITICAL ERROR in createOrder:', error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
 exports.verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, books, totalAmount } = req.body;
-
-    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const { razorpayorderid, razorpaypaymentid, razorpaysignature, userId, books, totalAmount } = req.body;
+    const authenticatedUserId = req.user._id;
+    const body = razorpayorderid + '|' + razorpaypaymentid;
     const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest('hex');
 
-    if (expectedSignature !== razorpay_signature) {
+    if (expectedSignature !== razorpaysignature) {
       return res.status(400).json({ message: 'Invalid signature, payment verification failed' });
     }
-
+    console.log('Before the Order into DB');
     // Save order to DB
     const order = new Order({
-      user: userId,
+      user: authenticatedUserId,
       books,
-      paymentId: razorpay_payment_id,
+      paymentId: razorpaypaymentid,
       totalAmount,
       status: 'paid',
     });
+    console.log('Saving order to database:', order);
     await order.save();
 
     // Reduce stock of books
@@ -66,6 +75,7 @@ exports.verifyPayment = async (req, res) => {
     const userEmail = req.user.email;
     for (const item of books) {
       const book = await Book.findById(item.book);
+      console.log('Sending purchase email for book:', book.title);
       await emailService.sendPurchaseSuccessEmail(userEmail, book.title);
     }
 

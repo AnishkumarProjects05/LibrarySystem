@@ -38,10 +38,11 @@ function CustomerDashboard() {
         },
         body: JSON.stringify({ books: [{ book: book._id, quantity: qty }] }),
       });
+      console.log("Create Order Response:", res);
       const order = await res.json();
 
       const options = {
-        key: 'rzp_test_RXM7pcbFmBZf7s',
+        key: 'rzp_test_RmbKNoUlRe68JR',
         amount: order.amount,
         currency: order.currency,
         name: 'Library Management',
@@ -49,6 +50,7 @@ function CustomerDashboard() {
         image: book.imageUrl,
         order_id: order.orderId,
         handler: async function (response) {
+          console.log("Razorpay Success Response Data:", response);
           await fetch('http://localhost:4000/api/payment/verify-payment', {
             method: 'POST',
             headers: {
@@ -62,6 +64,7 @@ function CustomerDashboard() {
               books: [{ book: book._id, quantity: qty }],
               totalAmount: book.price * qty,
             }),
+            
           });
           alert('Payment successful and order placed!');
         },
