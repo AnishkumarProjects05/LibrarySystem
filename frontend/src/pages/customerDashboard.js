@@ -1,3 +1,4 @@
+// customerDashboard.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CustomerDashboard.css';
@@ -9,18 +10,33 @@ function CustomerDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check for token on mount (Basic Auth Check)
+    if (!localStorage.getItem('token')) {
+      navigate('/login');
+      return;
+    }
+    
     fetch('http://localhost:4000/api/books')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch books');
+        return res.json();
+      })
       .then(data => {
         setBooks(data);
+        // Initialize quantities state
         setQuantities(q => {
-          const newQ = {...q};
-          data.forEach(b => { if (!newQ[b._id]) newQ[b._id] = 1; });
+          const newQ = { ...q };
+          data.forEach(b => {
+            if (!newQ[b._id]) newQ[b._id] = 1;
+          });
           return newQ;
         });
       })
-      .catch(err => console.error(err));
-  }, []);
+      .catch(err => {
+        console.error('Error fetching books:', err);
+        alert('Could not load books. Please try again.');
+      });
+  }, [navigate]);
 
   const handleQuantityChange = (bookId, q) => {
     setQuantities({ ...quantities, [bookId]: q });
@@ -28,34 +44,44 @@ function CustomerDashboard() {
 
   const handleBuy = async (book) => {
     const qty = Number(quantities[book._id]) || 1;
+    if (qty <= 0 || qty > book.stock) {
+        alert("Invalid quantity.");
+        return;
+    }
+
     setLoadingBookId(book._id);
     try {
-      const res = await fetch('http://localhost:4000/api/payment/create-order', {
+      const token = localStorage.getItem('token');
+      
+      // 1. Create Order
+      const createRes = await fetch('http://localhost:4000/api/payment/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ books: [{ book: book._id, quantity: qty }] }),
       });
-      console.log("Create Order Response:", res);
-      const order = await res.json();
-
+      
+      if (!createRes.ok) throw new Error('Order creation failed');
+      const order = await createRes.json();
+      
+      // 2. Razorpay Integration
       const options = {
-        key: 'rzp_test_RmbKNoUlRe68JR',
+        key: 'rzp_test_RmbKNoUlRe68JR', // Replace with your actual key
         amount: order.amount,
         currency: order.currency,
         name: 'Library Management',
-        description: `${book.title} (x${qty})`,
+        description: `Purchase: ${book.title} (x${qty})`,
         image: book.imageUrl,
         order_id: order.orderId,
         handler: async function (response) {
-          console.log("Razorpay Success Response Data:", response);
-          await fetch('http://localhost:4000/api/payment/verify-payment', {
+          // 3. Verify Payment after successful transaction
+          const verifyRes = await fetch('http://localhost:4000/api/payment/verify-payment', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({
               razorpayorderid: response.razorpay_order_id,
@@ -64,20 +90,25 @@ function CustomerDashboard() {
               books: [{ book: book._id, quantity: qty }],
               totalAmount: book.price * qty,
             }),
-            
           });
-          alert('Payment successful and order placed!');
+
+          if (!verifyRes.ok) throw new Error('Payment verification failed');
+          
+          alert('Payment successful and order placed! Check My Orders.');
+          // Optionally refresh book list or update stock locally
         },
-        prefill: {
-          name: '',
-          email: '',
-        },
-        theme: { color: '#528FF0' },
+        prefill: { name: '', email: '' },
+        theme: { color: '#3b82f6' },
       };
       const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response){
+          alert(`Payment failed: ${response.error.description}`);
+      });
       rzp.open();
+
     } catch (err) {
-      alert('Error starting payment. Try again.');
+      console.error("Payment flow error:", err);
+      alert('Error starting or completing payment. Try again.');
     }
     setLoadingBookId(null);
   };
@@ -89,55 +120,94 @@ function CustomerDashboard() {
 
   return (
     <div className="dashboard-container">
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
-      }}>
-        <h1>Available Books</h1>
-        <button className="logout-btn" onClick={handleLogout} title="Logout">
-          {/* SVG icon for better UI */}
-          <svg height="28" width="28" viewBox="0 0 24 24" fill="none">
-            <path d="M16 17L21 12L16 7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M21 12H9" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 19C7.58172 19 4 15.4183 4 11C4 6.58172 7.58172 3 12 3C13.7909 3 15.4347 3.72549 16.6569 4.92893" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+      <div className="dashboard-header">
+        <h1>Welcome to the Book Nook</h1>
+        <div className="dashboard-actions">
+          <button
+            onClick={() => navigate('/my-order')}
+            className="btn-orders"
+          >
+            View My Orders
+          </button>
+          <button
+            onClick={handleLogout}
+            className="btn-logout"
+          >
+            Logout
+          </button>
+        </div>
       </div>
-      <div className="books-list">
-        {books.map(book => {
-          const qty = Number(quantities[book._id]) || 1;
-          const isOutOfStock = book.stock <= 0;
-          const exceedsStock = qty > book.stock;
-          return (
-            <div className="book-card" key={book._id}>
-              <img src={book.imageUrl} alt={book.title} className="book-cover" />
-              <div className="book-details">
-                <h2>{book.title}</h2>
-                <h3>by {book.author}</h3>
-                <p>{book.description}</p>
-                <p><strong>Price:</strong> ₹{book.price} x {qty} = <strong>₹{book.price * qty}</strong></p>
-                <p><strong>Available:</strong> {book.stock > 0 ? book.stock : 'Out of stock'}</p>
-                <input
-                  type="number"
-                  min="1"
-                  max={book.stock}
-                  value={qty}
-                  disabled={isOutOfStock}
-                  onChange={e => handleQuantityChange(book._id, Math.max(1, Math.min(book.stock, Number(e.target.value) || 1)))}
-                  style={{width: "60px", marginRight:"7px"}}
-                />
-                <button className="buy-btn"
-                  onClick={() => handleBuy(book)}
-                  disabled={loadingBookId === book._id || isOutOfStock || exceedsStock}>
-                  {isOutOfStock ? "Out of Stock"
-                    : exceedsStock ? "Out of Stock"
-                    : loadingBookId === book._id ? "Processing..." : "Buy"}
-                </button>
-              </div>
-            </div>
-          );
-        })}
+
+      <div className="books-section">
+        <h2>Available Books</h2>
+        <div className="books-container">
+          {books.length === 0 ? (
+              <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>Loading books or no books available...</p>
+          ) : (
+            books.map((book) => {
+              const qty = quantities[book._id] || 1;
+              const isOutOfStock = book.stock <= 0;
+              
+              return (
+                <div 
+                  key={book._id} 
+                  className="book-card"
+                >
+                  <div className="book-cover-wrapper">
+                    {book.imageUrl ? (
+                      <img
+                        src={book.imageUrl}
+                        alt={book.title}
+                        className="book-cover"
+                      />
+                    ) : (
+                      <div className="no-image">📚</div>
+                    )}
+                  </div>
+
+                  <div className="book-details">
+                    <h3>{book.title}</h3>
+                    <p className="description">{book.description}</p>
+                    
+                    <p className="price-info">
+                        Price: ₹{book.price} x {qty} ={' '}
+                        <strong>₹{book.price * qty}</strong>
+                    </p>
+                    
+                    <p className="stock-info">
+                        Available Stock: {' '}
+                        <span className={isOutOfStock ? 'stock-out' : 'stock-available'}>
+                            {isOutOfStock ? 'Out of stock' : book.stock}
+                        </span>
+                    </p>
+                    
+                    <div className="buy-actions">
+                      <input
+                        type="number"
+                        value={qty}
+                        min="1"
+                        max={book.stock > 0 ? book.stock : 1}
+                        onChange={(e) =>
+                          handleQuantityChange(
+                            book._id,
+                            Math.max(1, Math.min(book.stock > 0 ? book.stock : 1, Number(e.target.value) || 1))
+                          )
+                        }
+                        disabled={isOutOfStock}
+                      />
+                      <button
+                        disabled={loadingBookId === book._id || isOutOfStock}
+                        onClick={() => handleBuy(book)}
+                      >
+                        {loadingBookId === book._id ? 'Processing…' : 'Buy Now'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
