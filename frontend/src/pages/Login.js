@@ -22,19 +22,26 @@ function Login() {
     if (response.ok) {
       setMessage('Login successful!');
       localStorage.setItem('token', data.token);
+      // NOTE: Using 'customer-dashboard' instead of '/customer-dashboard' for consistency with other navigations
       localStorage.setItem('role', data.user.role);
 
       // Redirect based on user role
       if (data.user.role === 'admin') {
         navigate('/admin-dashboard');
       } else if (data.user.role === 'customer') {
-        navigate('/customer-dashboard');
+        // Use the route you defined for the customer dashboard
+        navigate('/customer-dashboard'); 
       } else {
         navigate('/'); // fallback or home page
       }
     } else {
       setMessage(data.message || 'Login failed');
     }
+  };
+  
+  // New handler to navigate to the registration page
+  const handleRegisterClick = () => {
+    navigate('/register');
   };
 
   return (
@@ -60,6 +67,19 @@ function Login() {
         <button type="submit">Login</button>
       </form>
       <p>{message}</p>
+      
+      {/* --- NEW REGISTRATION LINK/BUTTON --- */}
+      <div className="register-section">
+          <p>New User?</p>
+          <button 
+            type="button" 
+            onClick={handleRegisterClick} 
+            className="register-btn"
+          >
+            Register Here
+          </button>
+      </div>
+      {/* ------------------------------------ */}
     </div>
   );
 }

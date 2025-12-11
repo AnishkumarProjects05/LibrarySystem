@@ -1,43 +1,73 @@
-// customerDashboard.js
+// customerDashboard.js (Focusing on the handleLogout function)
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CustomerDashboard.css';
 
 function CustomerDashboard() {
+  // ... (existing state variables and effects) ...
   const [books, setBooks] = useState([]);
   const [loadingBookId, setLoadingBookId] = useState(null);
   const [quantities, setQuantities] = useState({});
+  const [userEmail, setUserEmail] = useState('');
   const navigate = useNavigate();
 
+  // ... (useEffect for fetching books and user details) ...
   useEffect(() => {
-    // Check for token on mount (Basic Auth Check)
-    if (!localStorage.getItem('token')) {
+    const token = localStorage.getItem('token');
+    if (!token) {
       navigate('/login');
       return;
     }
-    
-    fetch('http://localhost:4000/api/books')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch books');
-        return res.json();
-      })
-      .then(data => {
-        setBooks(data);
-        // Initialize quantities state
-        setQuantities(q => {
-          const newQ = { ...q };
-          data.forEach(b => {
-            if (!newQ[b._id]) newQ[b._id] = 1;
-          });
-          return newQ;
+
+    // 1. Fetch User Data (Email)
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/api/user/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
         });
-      })
-      .catch(err => {
-        console.error('Error fetching books:', err);
-        alert('Could not load books. Please try again.');
-      });
+        const data = await res.json();
+        if (res.ok && data.user) {
+          setUserEmail(data.user.email);
+        } else {
+          console.error('Failed to fetch user data:', data.message);
+        }
+      } catch (err) {
+        console.error('Error fetching user:', err);
+      }
+    };
+    
+    // 2. Fetch Books
+    const fetchBooks = () => {
+        fetch('http://localhost:4000/api/books')
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch books');
+                return res.json();
+            })
+            .then(data => {
+                setBooks(data);
+                setQuantities(q => {
+                    const newQ = { ...q };
+                    data.forEach(b => {
+                        if (!newQ[b._id]) newQ[b._id] = 1;
+                    });
+                    return newQ;
+                });
+            })
+            .catch(err => {
+                console.error('Error fetching books:', err);
+                alert('Could not load books. Please try again.');
+            });
+    };
+    
+    fetchUser();
+    fetchBooks();
+
   }, [navigate]);
 
+  // ... (handleQuantityChange and handleBuy functions) ...
   const handleQuantityChange = (bookId, q) => {
     setQuantities({ ...quantities, [bookId]: q });
   };
@@ -92,12 +122,22 @@ function CustomerDashboard() {
             }),
           });
 
-          if (!verifyRes.ok) throw new Error('Payment verification failed');
+          if (!verifyRes.ok) {
+              alert('Payment successful, but stock update failed on server. Please contact support.');
+              throw new Error('Payment verification failed');
+          }
           
           alert('Payment successful and order placed! Check My Orders.');
-          // Optionally refresh book list or update stock locally
+          
+          // --- LOGIC TO DECREMENT STOCK LOCALLY (FRONTEND) ---
+          setBooks(prevBooks => 
+            prevBooks.map(b => 
+              b._id === book._id ? { ...b, stock: b.stock - qty } : b
+            )
+          );
+          // ---------------------------------------------------
         },
-        prefill: { name: '', email: '' },
+        prefill: { name: userEmail.split('@')[0], email: userEmail || '' }, // Using email to prefill Razorpay
         theme: { color: '#3b82f6' },
       };
       const rzp = new window.Razorpay(options);
@@ -112,16 +152,30 @@ function CustomerDashboard() {
     }
     setLoadingBookId(null);
   };
-
+  
+  // *** KEY UPDATE HERE ***
   const handleLogout = () => {
+    // 1. Clear Authentication Data
     localStorage.removeItem('token');
+    localStorage.removeItem('role'); // Good practice to clear role too
+
+    // 2. Clear any lingering user-specific data from state/storage
+    // This is crucial if you were caching orders in the browser.
+    // If you are using React state for orders in MyOrders.js, navigating 
+    // to /login will unmount MyOrders, which is sufficient, but clearing 
+    // storage keys related to user data is the safest approach.
+
+    // 3. Redirect to the login page
     navigate('/login');
   };
 
   return (
+    // ... (rest of the component) ...
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Welcome to the Book Nook</h1>
+        <h1>
+            Welcome, {userEmail ? userEmail.split('@')[0] : 'Customer'}!
+        </h1>
         <div className="dashboard-actions">
           <button
             onClick={() => navigate('/my-order')}

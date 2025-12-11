@@ -97,11 +97,11 @@ function MyOrders() {
                 <div className="order-main">
                   <div className="order-title">{item.book?.title || 'Unknown Book'}</div>
                   <div className="order-meta">
-                    <span>**Qty:** {item.quantity}</span>
-                    <span>**Rate:** ₹{item.book?.price ?? 'N/A'}</span>
-                    <span>**Total:** ₹{(item.book?.price * item.quantity).toFixed(2) ?? 'N/A'}</span>
-                    <span>**Date:** {formatDate(item.createdAt)}</span>
-                    <span style={{ fontSize: '0.8rem' }}>**Order ID:** {item.orderId}</span>
+                    <span> Qty: {item.quantity}</span>
+                    <span> Rate:  ₹{item.book?.price ?? 'N/A'}</span>
+                    <span> Total:  ₹{(item.book?.price * item.quantity).toFixed(2) ?? 'N/A'}</span>
+                    <span> Date:  {formatDate(item.createdAt)}</span>
+                    <span style={{ fontSize: '0.8rem' }}> Order ID:  {item.orderId}</span>
                   </div>
                 </div>
               </div>

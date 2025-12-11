@@ -1,6 +1,7 @@
 /* ===== General Container ===== */
 .dashboard-container {
-  max-width: 1400px;
+  /* Increased max-width for better desktop utilization */
+  max-width: 1600px; 
   margin: 40px auto;
   padding: 30px;
   /* Soft white background for a clean look */
@@ -44,6 +45,7 @@
 }
 
 .btn-orders {
+  margin-left:20px;
   background-color: #3b82f6; /* Blue for primary action */
   color: white;
 }
@@ -75,10 +77,12 @@
 
 .books-container {
   display: grid;
-  /* Responsive grid layout */
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* Key change: Explicitly start with a 4-column layout for large screens */
+  grid-template-columns: repeat(4, 1fr); 
   gap: 30px;
   padding-top: 10px;
+  /* Remove center justification to allow grid items to fill space */
+  justify-content: start; 
 }
 
 /* ===== Book Card (The centerpiece) ===== */
@@ -340,4 +344,45 @@
     font-size: 1.1rem;
     color: #64748b;
     padding: 20px 0;
+}
+
+@media (max-width: 1400px) {
+    /* Large Desktops/Laptops: 4 columns */
+    .books-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 1200px) {
+    /* Medium Laptops: 3 columns */
+    .books-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    /* Tablets: 2 columns */
+    .books-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .dashboard-container {
+        margin: 20px; /* Smaller margin on tablets */
+    }
+}
+
+@media (max-width: 600px) {
+    /* Mobile: 1 column */
+    .books-container {
+        grid-template-columns: 1fr;
+    }
+    .book-cover-wrapper {
+        height: 200px;
+    }
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .dashboard-actions {
+        margin-top: 15px;
+    }
 }
