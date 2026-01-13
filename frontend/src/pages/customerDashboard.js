@@ -1,5 +1,6 @@
 // customerDashboard.js (Focusing on the handleLogout function)
 import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import './CustomerDashboard.css';
 
@@ -38,30 +39,30 @@ function CustomerDashboard() {
         console.error('Error fetching user:', err);
       }
     };
-    
+
     // 2. Fetch Books
     const fetchBooks = () => {
-        fetch('http://localhost:4000/api/books')
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to fetch books');
-                return res.json();
-            })
-            .then(data => {
-                setBooks(data);
-                setQuantities(q => {
-                    const newQ = { ...q };
-                    data.forEach(b => {
-                        if (!newQ[b._id]) newQ[b._id] = 1;
-                    });
-                    return newQ;
-                });
-            })
-            .catch(err => {
-                console.error('Error fetching books:', err);
-                alert('Could not load books. Please try again.');
+      fetch('http://localhost:4000/api/books')
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch books');
+          return res.json();
+        })
+        .then(data => {
+          setBooks(data);
+          setQuantities(q => {
+            const newQ = { ...q };
+            data.forEach(b => {
+              if (!newQ[b._id]) newQ[b._id] = 1;
             });
+            return newQ;
+          });
+        })
+        .catch(err => {
+          console.error('Error fetching books:', err);
+          toast.error('Could not load books. Please try again.');
+        });
     };
-    
+
     fetchUser();
     fetchBooks();
 
@@ -75,14 +76,14 @@ function CustomerDashboard() {
   const handleBuy = async (book) => {
     const qty = Number(quantities[book._id]) || 1;
     if (qty <= 0 || qty > book.stock) {
-        alert("Invalid quantity.");
-        return;
+      toast.error("Invalid quantity.");
+      return;
     }
 
     setLoadingBookId(book._id);
     try {
       const token = localStorage.getItem('token');
-      
+
       // 1. Create Order
       const createRes = await fetch('http://localhost:4000/api/payment/create-order', {
         method: 'POST',
@@ -92,13 +93,13 @@ function CustomerDashboard() {
         },
         body: JSON.stringify({ books: [{ book: book._id, quantity: qty }] }),
       });
-      
+
       if (!createRes.ok) throw new Error('Order creation failed');
       const order = await createRes.json();
-      
+
       // 2. Razorpay Integration
       const options = {
-        key: 'rzp_test_RmbKNoUlRe68JR', // Replace with your actual key
+        key: 'rzp_test_S2bO2yvgt2kFwi', // Replace with your actual key
         amount: order.amount,
         currency: order.currency,
         name: 'Library Management',
@@ -123,15 +124,15 @@ function CustomerDashboard() {
           });
 
           if (!verifyRes.ok) {
-              alert('Payment successful, but stock update failed on server. Please contact support.');
-              throw new Error('Payment verification failed');
+            toast.error('Payment successful, but stock update failed on server. Please contact support.');
+            throw new Error('Payment verification failed');
           }
-          
-          alert('Payment successful and order placed! Check My Orders.');
-          
+
+          toast.success('Payment successful and order placed! Check My Orders.');
+
           // --- LOGIC TO DECREMENT STOCK LOCALLY (FRONTEND) ---
-          setBooks(prevBooks => 
-            prevBooks.map(b => 
+          setBooks(prevBooks =>
+            prevBooks.map(b =>
               b._id === book._id ? { ...b, stock: b.stock - qty } : b
             )
           );
@@ -141,18 +142,18 @@ function CustomerDashboard() {
         theme: { color: '#3b82f6' },
       };
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', function (response){
-          alert(`Payment failed: ${response.error.description}`);
+      rzp.on('payment.failed', function (response) {
+        toast.error(`Payment failed: ${response.error.description}`);
       });
       rzp.open();
 
     } catch (err) {
       console.error("Payment flow error:", err);
-      alert('Error starting or completing payment. Try again.');
+      toast.error('Error starting or completing payment. Try again.');
     }
     setLoadingBookId(null);
   };
-  
+
   // *** KEY UPDATE HERE ***
   const handleLogout = () => {
     // 1. Clear Authentication Data
@@ -174,7 +175,7 @@ function CustomerDashboard() {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1>
-            Welcome, {userEmail ? userEmail.split('@')[0] : 'Customer'}!
+          Welcome, {userEmail ? userEmail.split('@')[0] : 'Customer'}!
         </h1>
         <div className="dashboard-actions">
           <button
@@ -196,15 +197,15 @@ function CustomerDashboard() {
         <h2>Available Books</h2>
         <div className="books-container">
           {books.length === 0 ? (
-              <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>Loading books or no books available...</p>
+            <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>Loading books or no books available...</p>
           ) : (
             books.map((book) => {
               const qty = quantities[book._id] || 1;
               const isOutOfStock = book.stock <= 0;
-              
+
               return (
-                <div 
-                  key={book._id} 
+                <div
+                  key={book._id}
                   className="book-card"
                 >
                   <div className="book-cover-wrapper">
@@ -222,19 +223,19 @@ function CustomerDashboard() {
                   <div className="book-details">
                     <h3>{book.title}</h3>
                     <p className="description">{book.description}</p>
-                    
+
                     <p className="price-info">
-                        Price: ₹{book.price} x {qty} ={' '}
-                        <strong>₹{book.price * qty}</strong>
+                      Price: ₹{book.price} x {qty} ={' '}
+                      <strong>₹{book.price * qty}</strong>
                     </p>
-                    
+
                     <p className="stock-info">
-                        Available Stock: {' '}
-                        <span className={isOutOfStock ? 'stock-out' : 'stock-available'}>
-                            {isOutOfStock ? 'Out of stock' : book.stock}
-                        </span>
+                      Available Stock: {' '}
+                      <span className={isOutOfStock ? 'stock-out' : 'stock-available'}>
+                        {isOutOfStock ? 'Out of stock' : book.stock}
+                      </span>
                     </p>
-                    
+
                     <div className="buy-actions">
                       <input
                         type="number"

@@ -1,5 +1,7 @@
 import React from 'react'
 import './App.css'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -11,13 +13,14 @@ const App = () => {
   return (
     <Router>
       <div>
-        
+        <ToastContainer />
+
         <Routes>
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/customer-dashboard" element={<CustomerDashboard />} />  
+          <Route path="/customer-dashboard" element={<CustomerDashboard />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          <Route path='/my-order' element={<MyOrders/>}/>
+          <Route path='/my-order' element={<MyOrders />} />
 
         </Routes>
       </div>
