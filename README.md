@@ -108,4 +108,16 @@ node server.js
 ```
 
 
+### Login Credentials
+```bash
+Admin :
+Username: admin@gmail.com
+Password:admin1
+
+Customer :
+Username : customer1@gmail.com
+password:cust1
+
+```
+
 
