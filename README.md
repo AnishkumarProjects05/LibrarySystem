@@ -3,7 +3,8 @@
 A complete full-stack e-commerce application designed for managing and selling **digital and physical books**, integrating a real-time payment gateway (Razorpay), secure authentication, and **Role-Based Access Control (RBAC)**. The application provides a responsive customer dashboard, seamless transactions, and an admin interface for managing inventory and users.
 
 ---
-
+## Project Demo Video
+[Watch Demo Video](https://drive.google.com/file/d/1K-b-JRRgSNvWPB7lfWBbesiKQ4gGQu1O/view?usp=drive_link)
 ## 🚀 Features Overview
 
 ### **Frontend (Customer Experience)**
