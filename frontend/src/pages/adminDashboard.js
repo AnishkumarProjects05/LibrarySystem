@@ -12,7 +12,7 @@ function AdminDashboard() {
 
   // Fetch all books
   const fetchBooks = () => {
-    fetch('http://localhost:4000/api/books')
+    fetch(`${process.env.REACT_APP_API_URL}/api/books`)
       .then(res => res.json())
       .then(setBooks);
   };
@@ -27,8 +27,8 @@ function AdminDashboard() {
     e.preventDefault();
     const method = editId ? 'PUT' : 'POST';
     const url = editId
-      ? `http://localhost:4000/api/books/${editId}`
-      : 'http://localhost:4000/api/books';
+      ? `${process.env.REACT_APP_API_URL}/api/books/${editId}`
+      : `${process.env.REACT_APP_API_URL}/api/books`;
 
     const res = await fetch(url, {
       method,
@@ -61,7 +61,7 @@ function AdminDashboard() {
 
   // Delete handler
   const handleDelete = async id => {
-    await fetch(`http://localhost:4000/api/books/${id}`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/api/books/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -84,7 +84,7 @@ function AdminDashboard() {
 
   return (
     <div className="dashboard-container">
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Admin Dashboard</h1>
         <button className="logout-btn" onClick={handleLogout}>Logout</button>
       </div>

@@ -29,7 +29,7 @@ function MyOrders() {
           return;
         }
 
-        const res = await fetch('http://localhost:4000/api/orders', {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/orders`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ function MyOrders() {
         const data = await res.json();
         if (res.ok && data.success) {
           // Flatten the orders to show each book item individually in the list
-          const formattedOrders = (data.orders || []).flatMap(order => 
+          const formattedOrders = (data.orders || []).flatMap(order =>
             order.books.map((item, idx) => ({
               ...item,
               orderId: order._id,
@@ -80,31 +80,31 @@ function MyOrders() {
       ) : (
         <div className="orders-list">
           {orders.map((item) => (
-              <div key={item.key} className="order-row">
-                <div className="order-book-image">
-                  {item.book?.imageUrl ? (
-                    <img
-                      src={item.book.imageUrl}
-                      alt={item.book.title}
-                    />
-                  ) : (
-                    <div className="no-image-placeholder">
-                      📖
-                    </div>
-                  )}
-                </div>
-
-                <div className="order-main">
-                  <div className="order-title">{item.book?.title || 'Unknown Book'}</div>
-                  <div className="order-meta">
-                    <span> Qty: {item.quantity}</span>
-                    <span> Rate:  ₹{item.book?.price ?? 'N/A'}</span>
-                    <span> Total:  ₹{(item.book?.price * item.quantity).toFixed(2) ?? 'N/A'}</span>
-                    <span> Date:  {formatDate(item.createdAt)}</span>
-                    <span style={{ fontSize: '0.8rem' }}> Order ID:  {item.orderId}</span>
+            <div key={item.key} className="order-row">
+              <div className="order-book-image">
+                {item.book?.imageUrl ? (
+                  <img
+                    src={item.book.imageUrl}
+                    alt={item.book.title}
+                  />
+                ) : (
+                  <div className="no-image-placeholder">
+                    📖
                   </div>
+                )}
+              </div>
+
+              <div className="order-main">
+                <div className="order-title">{item.book?.title || 'Unknown Book'}</div>
+                <div className="order-meta">
+                  <span> Qty: {item.quantity}</span>
+                  <span> Rate:  ₹{item.book?.price ?? 'N/A'}</span>
+                  <span> Total:  ₹{(item.book?.price * item.quantity).toFixed(2) ?? 'N/A'}</span>
+                  <span> Date:  {formatDate(item.createdAt)}</span>
+                  <span style={{ fontSize: '0.8rem' }}> Order ID:  {item.orderId}</span>
                 </div>
               </div>
+            </div>
           ))}
         </div>
       )}

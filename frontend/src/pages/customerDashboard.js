@@ -23,7 +23,7 @@ function CustomerDashboard() {
     // 1. Fetch User Data (Email)
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/user/me', {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/user/me`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -42,7 +42,7 @@ function CustomerDashboard() {
 
     // 2. Fetch Books
     const fetchBooks = () => {
-      fetch('http://localhost:4000/api/books')
+      fetch(`${process.env.REACT_APP_API_URL}/api/books`)
         .then(res => {
           if (!res.ok) throw new Error('Failed to fetch books');
           return res.json();
@@ -85,7 +85,7 @@ function CustomerDashboard() {
       const token = localStorage.getItem('token');
 
       // 1. Create Order
-      const createRes = await fetch('http://localhost:4000/api/payment/create-order', {
+      const createRes = await fetch(`${process.env.REACT_APP_API_URL}/api/payment/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ function CustomerDashboard() {
         order_id: order.orderId,
         handler: async function (response) {
           // 3. Verify Payment after successful transaction
-          const verifyRes = await fetch('http://localhost:4000/api/payment/verify-payment', {
+          const verifyRes = await fetch(`${process.env.REACT_APP_API_URL}/api/payment/verify-payment`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

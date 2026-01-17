@@ -11,7 +11,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await fetch('http://localhost:4000/api/auth/login', {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -30,7 +30,7 @@ function Login() {
         navigate('/admin-dashboard');
       } else if (data.user.role === 'customer') {
         // Use the route you defined for the customer dashboard
-        navigate('/customer-dashboard'); 
+        navigate('/customer-dashboard');
       } else {
         navigate('/'); // fallback or home page
       }
@@ -38,7 +38,7 @@ function Login() {
       setMessage(data.message || 'Login failed');
     }
   };
-  
+
   // New handler to navigate to the registration page
   const handleRegisterClick = () => {
     navigate('/register');
@@ -49,7 +49,7 @@ function Login() {
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <label>Email:</label>
-        <input 
+        <input
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
@@ -67,17 +67,17 @@ function Login() {
         <button type="submit">Login</button>
       </form>
       <p>{message}</p>
-      
+
       {/* --- NEW REGISTRATION LINK/BUTTON --- */}
       <div className="register-section">
-          <p>New User?</p>
-          <button 
-            type="button" 
-            onClick={handleRegisterClick} 
-            className="register-btn"
-          >
-            Register Here
-          </button>
+        <p>New User?</p>
+        <button
+          type="button"
+          onClick={handleRegisterClick}
+          className="register-btn"
+        >
+          Register Here
+        </button>
       </div>
       {/* ------------------------------------ */}
     </div>

@@ -14,7 +14,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await fetch('http://localhost:4000/api/auth/register', {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, role }),
@@ -29,7 +29,7 @@ function Register() {
       setPassword('');
       setRole('customer');
       setTimeout(() => {
-        navigate('/login'); 
+        navigate('/login');
       }, 1500);
     } else {
       setMessage(data.message || 'Registration failed');
@@ -42,27 +42,27 @@ function Register() {
       <h2>Register</h2>
       <form onSubmit={handleSubmit}>
         <label>Name:</label>
-        <input 
-          type="text" 
-          value={name} 
-          onChange={e => setName(e.target.value)} 
-          required 
+        <input
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          required
         />
 
         <label>Email:</label>
-        <input 
-          type="email" 
-          value={email} 
-          onChange={e => setEmail(e.target.value)} 
-          required 
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
         />
 
         <label>Password:</label>
-        <input 
-          type="password" 
-          value={password} 
-          onChange={e => setPassword(e.target.value)} 
-          required 
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
         />
 
         <label>Role:</label>

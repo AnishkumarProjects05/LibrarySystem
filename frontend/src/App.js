@@ -2,7 +2,7 @@ import React from 'react'
 import './App.css'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import AdminDashboard from './pages/adminDashboard';
@@ -16,6 +16,7 @@ const App = () => {
         <ToastContainer />
 
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/customer-dashboard" element={<CustomerDashboard />} />
           <Route path="/register" element={<Register />} />
